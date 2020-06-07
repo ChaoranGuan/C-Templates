@@ -1,0 +1,110 @@
+#include <iostream>
+#include <string>
+#include <memory>
+#include <unordered_map>
+
+class ddtScheme
+{
+public:
+    ddtScheme() {}
+
+    // 为构造函数定义类型别名
+    typedef std::shared_ptr<ddtScheme> (*constructorPtr)();
+
+    // 为 map 定义类型别名
+    typedef std::unordered_map<std::string, constructorPtr> constructorMap;
+
+    // 声明 map 对象指针
+    static constructorMap *constructorMapPtr_;
+
+    // 创建 map 对象
+    static void constructConstructorMaps()
+    {
+        static bool constructed = false;
+        if (!constructed)
+        {
+            constructed = true;
+            constructorMapPtr_ = new constructorMap;
+        }
+    }
+
+    template<typename ddtSchemeType>
+   static std::shared_ptr<ddtScheme> ddtSchemeNew()
+    {
+        return std::shared_ptr<ddtScheme>(new ddtSchemeType);
+    }
+
+    template<typename ddtSchemeType>
+   static void addConstructorToMaps(const std::string& lookup)
+    {
+        ddtScheme::constructConstructorMaps();
+        ddtScheme::constructorMapPtr_->insert(ddtScheme::constructorMap::value_type(lookup, ddtSchemeNew<ddtSchemeType>));
+    }
+};
+
+ddtScheme::constructorMap *ddtScheme::constructorMapPtr_ = NULL;
+
+class EulerDdtScheme
+:
+    public ddtScheme
+{
+public:
+    EulerDdtScheme() { std::cout << "Construct Euler scheme." << std::endl; }
+};
+
+
+class backwardDdtScheme
+:
+    public ddtScheme
+{
+public:
+    backwardDdtScheme() { std::cout << "Construct backward scheme." << std::endl; }
+};
+
+
+class steadyStateDdtScheme
+:
+    public ddtScheme
+{
+public:
+    steadyStateDdtScheme() { std::cout << "Construct steadyState scheme." << std::endl; }
+};
+
+
+class ddtSchemeFactory
+{
+public:
+    ddtSchemeFactory() {}
+
+    static std::shared_ptr<ddtScheme> createDdtScheme(const std::string& type)
+    {
+        ddtScheme::constructorMap::iterator it = ddtScheme::constructorMapPtr_->find(type);
+        if (it != ddtScheme::constructorMapPtr_->end())
+        {
+            return it->second();
+        }
+        else
+        {
+            std::cout << "Unknown type: " << type << std::endl;
+            return nullptr;
+        }
+    }
+};
+
+
+int main(int argc, char *argv[])
+{
+    // 初始化 map 对象
+    ddtScheme::constructConstructorMaps();
+
+    // 往 map 对象中添加条目
+    ddtScheme::addConstructorToMaps<EulerDdtScheme>("Euler");
+    ddtScheme::addConstructorToMaps<backwardDdtScheme>("backward");
+    ddtScheme::addConstructorToMaps<steadyStateDdtScheme>("steadyState");
+
+    std::shared_ptr<ddtScheme> euler = ddtSchemeFactory::createDdtScheme("Euler");
+    std::shared_ptr<ddtScheme> steadystate = ddtSchemeFactory::createDdtScheme("steadyState");
+    std::shared_ptr<ddtScheme> banana = ddtSchemeFactory::createDdtScheme("banana");
+
+    return 0;
+}

@@ -1,0 +1,5 @@
+EXE_INC = \
+	-I/home/chaoranran-guan/C++Templates/RTS/headersDeuce/ddtScheme
+
+
+LIB_LIBS = 

@@ -1,0 +1,13 @@
+EXE_INC = \
+	-I/home/chaoranran-guan/C++Templates/RTS/headersDeuce/ddtScheme	\
+	-I/home/chaoranran-guan/C++Templates/RTS/headersDeuce/Euler 
+	
+
+
+EXE_LIBS = \
+	-L$(FOAM_USER_LIBBIN) \
+	-lddtScheme  \
+	-lEulerScheme 
+
+
+	
